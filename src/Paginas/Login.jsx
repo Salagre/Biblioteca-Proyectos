@@ -46,7 +46,8 @@ function Login({ setIsAuth }) {
             const referenciaColUsuarios = collection(db, "usuarios");
             const newUsuario = {
                 correo: result.user.email,
-                isProfesor: false
+                isProfesor: false,
+                isAdmin: false
             }
             addDoc(referenciaColUsuarios, newUsuario);
 

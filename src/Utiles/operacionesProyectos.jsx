@@ -1,14 +1,32 @@
 import { db } from "../firebase-config";
-import { collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
+import { collection, getDocs, getDoc, addDoc, deleteDoc, doc, setDoc } from "firebase/firestore";
 
 const referenciaColeccionProyectos = collection(db, "proyectos");
 class operacionesProyectos {
     addProyecto(newProyecto) {
         return addDoc(referenciaColeccionProyectos, newProyecto);
     }
-    updateProyecto = (id, updatedProyecto) => {
-        const proyectoDoc = doc(db, "proyectos", id);
-        return updateDoc(proyectoDoc, updatedProyecto);
+    updateProyecto = async (ids, updatedProyecto) => {
+        try {
+            console.log(ids);
+            await setDoc(doc(db, "proyectos", ids), {
+                alumno: updatedProyecto.alumno,
+                tutor: updatedProyecto.tutor,
+                profesor: updatedProyecto.profesor,
+                curso: updatedProyecto.curso,
+                tituloProyecto: updatedProyecto.tituloProyecto,
+                tipo: updatedProyecto.tipo,
+                finalidad: updatedProyecto.finalidad,
+                reqObj: updatedProyecto.reqObj,
+                mediosSoft: updatedProyecto.mediosSoft,
+                mediosHard: updatedProyecto.mediosHard,
+                etiquetas: updatedProyecto.etiquetas
+
+            });
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
     };
 
     deleteProyecto = (id) => {
@@ -20,15 +38,10 @@ class operacionesProyectos {
         return getDocs(referenciaColeccionProyectos);
     };
 
-    getProyectosAlumno = (alumno) => {
-        return query(referenciaColeccionProyectos, where("alumno", "==", "alejandro.salvar@educa.jcyl.es"));
-        
-    }
-
     getProyecto = (id) => {
         const proyectoDoc = doc(db, "proyectos", id);
         return getDoc(proyectoDoc);
     };
 }
 
-export default new operacionesProyectos;
+export default new operacionesProyectos();

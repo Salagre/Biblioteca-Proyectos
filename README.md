@@ -9,6 +9,7 @@
     - npm install firebase (Para descargar e intalar las bibliotecas de firebase)
     - npm install react-router-dom (Para poder usar el router)
     - npm install sass (Para poder usar hojas de estilo)
+    - npm install --save @pathofdev/react-tag-input (Para tener un input de etiquetas)
 
 # Para ejecutar la aplicación:
-    -npm start
+    - npm start

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Inicio from "./Paginas/Inicio";
 import Login from "./Paginas/Login";
 import Usuario from "./Paginas/Usuario";
+import Admin from "./Paginas/Admin";
 import { useState } from "react";
 import { auth } from "./firebase-config";
 import { signOut } from "firebase/auth";
@@ -43,6 +44,7 @@ function App() {
         <Route path="/login" element={<Login setIsAuth={setIsAuth} />} />
         <Route path="/usuario" element={<Usuario isAuth={isAuth} />} />
         <Route path="/proyecto" element={<Proyecto isAuth={isAuth} />} />
+        <Route path="/admin" element={<Admin isAuth={isAuth} />} />
       </Routes>
     </Router>
   );

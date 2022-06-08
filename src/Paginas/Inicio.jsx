@@ -24,7 +24,7 @@ function Inicio({ isAuth }) {
                     getProyectosAlumno();
                     getUsuario();
                 } else {
-                    console.log("no estas logeado")
+                    //No loged
                 }
             });
         }

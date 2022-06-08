@@ -8,7 +8,6 @@ class operacionesProyectos {
     }
     updateProyecto = async (ids, updatedProyecto) => {
         try {
-            console.log(ids);
             await setDoc(doc(db, "proyectos", ids), {
                 alumno: updatedProyecto.alumno,
                 tutor: updatedProyecto.tutor,

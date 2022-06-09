@@ -3,13 +3,15 @@ import { auth, db } from "../firebase-config"
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from 'firebase/auth'
+import { doc, setDoc } from "firebase/firestore";
 
 function Admin({ isAuth }) {
     let navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [isAdmin, setIsAdmin] = useState(false)
     const [usuariosQueQuierenSerProfesores, setUsuariosQueQuierenSerProfesores] = useState([]);
-    const [usuariosQueQuierenSerAdministradores, setUsuariosQueQuierenSerAdministradores] = useState([]);
+    const [admins, setAdmins] = useState([]);
+    const [nuevoAdmin, setNuevoAdmin] = useState("");
 
     useEffect(() => {
         if (isAuth) {
@@ -48,14 +50,132 @@ function Admin({ isAuth }) {
 
 
 
-            const q3 = query(collection(db, "usuarios"), where("isSolicitadoSerAdmin", "==", true));
+            const q3 = query(collection(db, "usuarios"), where("isAdmin", "==", true));
             const querySnapshot3 = await getDocs(q3);
-            setUsuariosQueQuierenSerAdministradores([]);
+            setAdmins([]);
             querySnapshot3.forEach((doc) => {
-                setUsuariosQueQuierenSerAdministradores(oldUsuariosQueQuierenSerAdministradores => [...oldUsuariosQueQuierenSerAdministradores, { idDoc: doc.id, correo: doc.data().correo, nombre: doc.data().nombre }]);
+                setAdmins(oldAdmins => [...oldAdmins, { idDoc: doc.id, correo: doc.data().correo, nombre: doc.data().nombre, isProfesor: doc.data().isProfesor }]);
             });
         }
     };
+
+    const handleSubmit = async (e) => {
+        //Comprobar si el usuario existe
+        e.preventDefault();
+        console.log(nuevoAdmin)
+        const q = query(collection(db, "usuarios"), where("correo", "==", nuevoAdmin));
+        const querySnapshot = await getDocs(q);
+        console.log(querySnapshot.docs)
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: docs.data().isProfesor,
+                isAdmin: true,
+                isSolicitadoSerProfesor: docs.data().isSolicitadoSerProfesor
+            });
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+
+
+        //Hacerlo admin
+    }
+
+    const denegarPeticion = async (e) => {
+        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+        const querySnapshot = await getDocs(q);
+        console.log(querySnapshot.docs)
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: false,
+                isAdmin: docs.data().isAdmin,
+                isSolicitadoSerProfesor: false
+            });
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const aprobarPeticion = async (e) => {
+        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+        const querySnapshot = await getDocs(q);
+        console.log(querySnapshot.docs)
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: true,
+                isAdmin: docs.data().isAdmin,
+                isSolicitadoSerProfesor: false
+            });
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const eliminarAdmin = async (e) => {
+        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+        const querySnapshot = await getDocs(q);
+        console.log(querySnapshot.docs)
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: docs.data().isProfesor,
+                isAdmin: false,
+                isSolicitadoSerProfesor: docs.data().isSolicitadoSerProfesor
+            });
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+    }
 
 
 
@@ -67,11 +187,11 @@ function Admin({ isAuth }) {
             <div>
                 <ul>
                     {usuariosQueQuierenSerProfesores.map((obj) => (
-                        <li className={obj.idDoc}>
+                        <li key={obj.idDoc}>
                             <p>Nombre: {obj.nombre} </p>
                             <p>Correo: {obj.correo} </p>
-                            <button>Conceder petición</button>
-                            <button>Denegar petición</button>
+                            <button onClick={() => denegarPeticion(obj.correo)}>Denegar petición</button>
+                            <button onClick={() => aprobarPeticion(obj.correo)}>Aprobar petición</button>
                         </li>
                     ))}
                 </ul>
@@ -79,15 +199,21 @@ function Admin({ isAuth }) {
             </div>
 
 
-            <div>Usuarios que quieren ser administradores</div>
+            <div>Listado de Administradores</div>
+            <div>
+                <div>Añadir nuevo administrador</div>
+                <form onSubmit={ handleSubmit}>
+                    <input type="text" name="correo" onChange={event => setNuevoAdmin(event.target.value)} />
+                    <input type="submit" value="Añadir" />
+                </form>
+            </div>
             <div>
                 <ul>
-                    {usuariosQueQuierenSerAdministradores.map((user) => (
-                        <li className={user.idDoc}>
+                    {admins.map((user) => (
+                        <li key={user.idDoc}>
                             <p>Nombre: {user.nombre} </p>
                             <p>Correo: {user.correo} </p>
-                            <button>Conceder petición</button>
-                            <button>Denegar petición</button>
+                            <button  onClick={() => eliminarAdmin(user.correo) }>Eliminar Administrador</button>
                         </li>
                     ))}
                 </ul>

@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore"
 import { getAuth, OAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth'
+import {getStorage} from "firebase/storage"
 
 //Configuración de firebase
 const firebaseConfig = {
@@ -13,7 +14,7 @@ const firebaseConfig = {
 };
 
 // Inicializar Firebase
-const app = initializeApp(firebaseConfig);
+ const app = initializeApp(firebaseConfig);
 
 // Coger la base de datos
 export const db = getFirestore(app);
@@ -33,3 +34,5 @@ provider.setCustomParameters({
     login_hint: 'ahh',
     tenant: 'educa.jcyl.es'
 });
+
+export const storage = getStorage(app)

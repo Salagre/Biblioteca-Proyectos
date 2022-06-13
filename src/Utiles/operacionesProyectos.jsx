@@ -4,6 +4,7 @@ import { collection, getDocs, getDoc, addDoc, deleteDoc, doc, setDoc } from "fir
 const referenciaColeccionProyectos = collection(db, "proyectos");
 class operacionesProyectos {
     addProyecto(newProyecto) {
+        console.log(newProyecto)
         return addDoc(referenciaColeccionProyectos, newProyecto);
     }
     updateProyecto = async (ids, updatedProyecto) => {
@@ -19,7 +20,12 @@ class operacionesProyectos {
                 reqObj: updatedProyecto.reqObj,
                 mediosSoft: updatedProyecto.mediosSoft,
                 mediosHard: updatedProyecto.mediosHard,
-                etiquetas: updatedProyecto.etiquetas
+                etiquetas: updatedProyecto.etiquetas,
+                urlDoc: updatedProyecto.urlDoc,
+                urlCodigo: updatedProyecto.urlCodigo,
+                urlApp: updatedProyecto.urlApp,
+                urlPdfEvaluacion: updatedProyecto.urlPdfEvaluacion,
+                urlsOtrosDocs: updatedProyecto.urlsOtrosDocs
 
             });
             //return updateDoc(proyectoDoc, updatedProyecto);

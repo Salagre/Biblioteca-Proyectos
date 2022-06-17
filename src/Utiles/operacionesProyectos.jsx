@@ -25,7 +25,8 @@ class operacionesProyectos {
                 urlCodigo: updatedProyecto.urlCodigo,
                 urlApp: updatedProyecto.urlApp,
                 urlPdfEvaluacion: updatedProyecto.urlPdfEvaluacion,
-                urlsOtrosDocs: updatedProyecto.urlsOtrosDocs
+                urlsOtrosDocs: updatedProyecto.urlsOtrosDocs,
+                isCerrado: updatedProyecto.isCerrado
 
             });
             //return updateDoc(proyectoDoc, updatedProyecto);

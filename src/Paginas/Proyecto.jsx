@@ -7,10 +7,9 @@ import { useLocation } from "react-router-dom";
 import ReactTagInput from "@pathofdev/react-tag-input";
 import "@pathofdev/react-tag-input/build/index.css";
 import { storage } from "../firebase-config"
-import { getDownloadURL, ref, uploadBytes, uploadBytesResumable } from "firebase/storage"
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage"
 import { v4 } from "uuid"
 import { collection, getDocs, query, where } from "firebase/firestore";
-
 import { auth } from "../firebase-config"
 import { onAuthStateChanged } from 'firebase/auth'
 
@@ -19,7 +18,6 @@ function Proyecto({ isAuth }) {
     const [email, setEmail] = useState("");
     const [isProfesor, setIsProfesor] = useState(false);
     const location = useLocation();
-
     let navigate = useNavigate();
     useEffect(() => {
         onAuthStateChanged(auth, (user) => {
@@ -48,8 +46,13 @@ function Proyecto({ isAuth }) {
             setUrlApp(location.state.props[0].urlApp)
             setUrlPdfEvaluacion(location.state.props[0].urlPdfEvaluacion)
             setUrlsOtrosDocs(location.state.props[0].urlsOtrosDocs)
+            setIsCerrado(location.state.props[0].isCerrado)
         }
-    },  [email]);
+    }, [email]);
+
+
+
+
 
     const [alumno, setAlumno] = useState("");
     const [tutor, setTutor] = useState("");
@@ -74,6 +77,9 @@ function Proyecto({ isAuth }) {
     const [urlHistoricoNotas, setUrlHistoricoNotas] = useState(null)
     const [otrosDocs, setOtrosDocs] = useState(null)
     const [urlsOtrosDocs, setUrlsOtrosDocs] = useState([])
+    const [isCerrado, setIsCerrado] = useState(false);
+
+
 
     const getUsuario = async () => {
         if (isAuth) {
@@ -89,10 +95,12 @@ function Proyecto({ isAuth }) {
 
 
     const handleSubmit = async (e) => {
+        setAlumno(document.getElementById("alumn").value)
         e.preventDefault();
-        if (alumno === "" || tutor === "") {
+        if (document.getElementById("alumn").value === "" || tutor === "") {
             return;
         }
+        let alumno = document.getElementById("alumn").value
 
         const nuevoProyecto = {
             alumno,
@@ -111,7 +119,8 @@ function Proyecto({ isAuth }) {
             urlApp,
             urlPdfEvaluacion,
             urlHistoricoNotas,
-            urlsOtrosDocs
+            urlsOtrosDocs,
+            isCerrado
 
         };
         try {
@@ -119,6 +128,7 @@ function Proyecto({ isAuth }) {
                 await operacionesProyectos.updateProyecto(location.state.props[1], nuevoProyecto);
             } else {
                 await operacionesProyectos.addProyecto(nuevoProyecto);
+                setIsEditando(true)
 
             }
         } catch (err) {
@@ -195,19 +205,36 @@ function Proyecto({ isAuth }) {
         ]);
     }
 
+
     return (
         <div>
-            <h3>Proyecto</h3>
+            <h3>{tituloProyecto != "" ? tituloProyecto : Proyecto}</h3>
+            {
+                    isEditando ?
+                        <button type="submit" form="FormularioProyecto">Actualizar</button>
+                        :
+                        <button type="submit" form="FormularioProyecto">Guardar</button>
+                }
+                {
+                    isProfesor && (
+                        <>
+                            {isCerrado ? <><button onClick={() => setIsCerrado(false)}>Abrir entrega</button></> :
+                                <><button onClick={() => setIsCerrado(true)}>Cerrar entrega</button></>
+                            }
+                        </>
+                    )
+                }
             <div>
                 <form onSubmit={handleSubmit} id="FormularioProyecto">
                     Alumno
                     <input
                         type="text"
+                        id="alumn"
                         placeholder="Correo alumno"
                         name="alumno"
                         onChange={(e) => setAlumno(e.target.value)}
-                        value={!isProfesor ? email : alumno} 
-                        disabled/>
+                        value={!isProfesor ? email : alumno}
+                        disabled />
                     <br />
                     <br />
                     Tutor
@@ -216,31 +243,30 @@ function Proyecto({ isAuth }) {
                         placeholder="Correo tutor"
                         name="tutor"
                         onChange={(e) => setTutor(e.target.value)}
-                        value={tutor} 
-                        disabled={!isProfesor && true}
-                        />
+                        value={tutor}
+                    />
                     <br />
                     <br />
                     Profesor
                     <input type="text" placeholder="Correo profesor" name="profesor" onChange={(e) => setProfesor(e.target.value)} value={profesor}
-                        disabled={!isProfesor && true} />
+                    />
                     <br />
                     <br />
                     Curso
-                    <input type="text" placeholder="Curso" name="curso" onChange={(e) => setCurso(e.target.value)} value={curso} disabled={isProfesor && true} />
+                    <input type="text" placeholder="Curso" name="curso" onChange={(e) => setCurso(e.target.value)} value={curso} disabled={(isProfesor && true) || isCerrado} />
                     <br />
                     <br />
                     Título
-                    <input type="text" placeholder="Título de proyecto" name="titulo" onChange={(e) => setTituloProyecto(e.target.value)} value={tituloProyecto} disabled={isProfesor && true} disabled={isProfesor && true} />
+                    <input type="text" placeholder="Título de proyecto" name="titulo" onChange={(e) => setTituloProyecto(e.target.value)} value={tituloProyecto} disabled={(isProfesor && true) || isCerrado} />
                     <br />
                     <br />
                     Tipo de proyecto
                     <div >
-                        <input type="radio" value="documental" name="tipo" onChange={(e) => setTipo("documental")} checked={tipo === "documental" ? true : false} disabled={isProfesor && true}/> Proyecto documental:
+                        <input type="radio" value="documental" name="tipo" onChange={(e) => setTipo("documental")} checked={tipo === "documental" ? true : false} disabled={(isProfesor && true) || isCerrado} /> Proyecto documental:
                         Blablalblalblablbalballab <br />
-                        <input type="radio" value="desarrollo" name="tipo" onChange={(e) => setTipo("desarrollo")} checked={tipo === "desarrollo" ? true : false} disabled={isProfesor && true}/> Proyecto de innovación, investigación experimental o desarrollo:
+                        <input type="radio" value="desarrollo" name="tipo" onChange={(e) => setTipo("desarrollo")} checked={tipo === "desarrollo" ? true : false} disabled={(isProfesor && true) || isCerrado} /> Proyecto de innovación, investigación experimental o desarrollo:
                         Blablalblalblablbalballab <br />
-                        <input type="radio" value="gestion" name="tipo" onChange={(e) => setTipo("gestion")} checked={tipo === "gestion" ? true : false} disabled={isProfesor && true}/> Proyecto de gestión:
+                        <input type="radio" value="gestion" name="tipo" onChange={(e) => setTipo("gestion")} checked={tipo === "gestion" ? true : false} disabled={(isProfesor && true) || isCerrado} /> Proyecto de gestión:
                         Blablalblalblablbalballab <br />
                     </div>
 
@@ -248,16 +274,16 @@ function Proyecto({ isAuth }) {
                     <br />
 
                     Finalidad
-                    <input type="text" placeholder="Finalidad del proyecto" name="finalidad" onChange={(e) => setFinalidad(e.target.value)} value={finalidad} disabled={isProfesor && true} />
+                    <input type="text" placeholder="Finalidad del proyecto" name="finalidad" onChange={(e) => setFinalidad(e.target.value)} value={finalidad} disabled={(isProfesor && true) || isCerrado} />
                     <br />
                     <br />
                     Requisitos / Objetivos(Uno por linea)
-                    <textarea id="reqObj" placeholder="Listado de requisitos/objetivos" cols="30" rows="10" name="reqObj" onChange={(e) => setReqObj(e.target.value.replace(/\r\n/, "\n").split("\n"))} value={reqObj.join("\n")} disabled={isProfesor && true}/>
+                    <textarea id="reqObj" placeholder="Listado de requisitos/objetivos" cols="30" rows="10" name="reqObj" onChange={(e) => setReqObj(e.target.value.replace(/\r\n/, "\n").split("\n"))} value={reqObj.join("\n")} disabled={(isProfesor && true) || isCerrado} />
                     <br />
                     <br />
                     Medios (Uno por linea):
-                    <textarea id="mediosSoft" placeholder="Medios Software" cols="30" rows="10" name="soft" onChange={(e) => setMediosSoft(e.target.value.replace(/\r\n/, "\n").split("\n"))} value={mediosSoft.join("\n")} disabled={isProfesor && true}/>
-                    <textarea id="mediosHard" placeholder="Medios Hardware" cols="30" rows="10" name="hard" onChange={(e) => setMediosHard(e.target.value.replace(/\r\n/, "\n").split("\n"))} value={mediosHard.join("\n")} disabled={isProfesor && true}/>
+                    <textarea id="mediosSoft" placeholder="Medios Software" cols="30" rows="10" name="soft" onChange={(e) => setMediosSoft(e.target.value.replace(/\r\n/, "\n").split("\n"))} value={mediosSoft.join("\n")} disabled={(isProfesor && true) || isCerrado} />
+                    <textarea id="mediosHard" placeholder="Medios Hardware" cols="30" rows="10" name="hard" onChange={(e) => setMediosHard(e.target.value.replace(/\r\n/, "\n").split("\n"))} value={mediosHard.join("\n")} disabled={(isProfesor && true) || isCerrado} />
                     <br />
                     <br />
 
@@ -267,13 +293,13 @@ function Proyecto({ isAuth }) {
                     {
                         urlDoc == null ?
                             <>
-                                <input id="inputDocumentacion" type="file" name="documentacion" onChange={(event) => setDocumentacion(event.target.files[0])} disabled={isProfesor && true}/>
-                                <button type="button" onClick={() => { subirDocumentacion() }} disabled={isProfesor && true}>Subir documentación</button>
+                                <input id="inputDocumentacion" type="file" name="documentacion" onChange={(event) => setDocumentacion(event.target.files[0])} disabled={(isProfesor && true) || isCerrado} />
+                                <button type="button" onClick={() => { subirDocumentacion() }} disabled={(isProfesor && true) || isCerrado}>Subir documentación</button>
                             </>
                             :
                             <>
                                 <a href={urlDoc}>{urlDoc.split('rjvgbarvbjdrsgfvkjsyfjvbgsrvefjyrgesvbfsgfs')[1].split("?alt=")[0]}</a>
-                                <button type="button" onClick={() => { setDocumentacion(null); setUrlDoc(null) }} disabled={isProfesor && true}>Borrar archivo</button>
+                                <button type="button" onClick={() => { setDocumentacion(null); setUrlDoc(null) }} disabled={(isProfesor && true) || isCerrado}>Borrar archivo</button>
                             </>
                     }
                     <br />
@@ -282,13 +308,13 @@ function Proyecto({ isAuth }) {
                     {
                         urlCodigo == null ?
                             <>
-                                <input id="inputCodigo" type="file" name="codigo" onChange={(event) => setCodigo(event.target.files[0])} disabled={isProfesor && true}/>
-                                <button type="button" onClick={() => { subirCodigo() }} disabled={isProfesor && true}>Subir documentación</button>
+                                <input id="inputCodigo" type="file" name="codigo" onChange={(event) => setCodigo(event.target.files[0])} disabled={(isProfesor && true) || isCerrado} />
+                                <button type="button" onClick={() => { subirCodigo() }} disabled={(isProfesor && true) || isCerrado}>Subir documentación</button>
                             </>
                             :
                             <>
                                 <a href={urlCodigo}>{urlCodigo.split('rjvgbarvbjdrsgfvkjsyfjvbgsrvefjyrgesvbfsgfs')[1].split("?alt=")[0]}</a>
-                                <button type="button" onClick={() => { setCodigo(null); setUrlCodigo(null) }} disabled={isProfesor && true}>Borrar archivo</button>
+                                <button type="button" onClick={() => { setCodigo(null); setUrlCodigo(null) }} disabled={(isProfesor && true) || isCerrado}>Borrar archivo</button>
                             </>
                     }
                     <br />
@@ -298,13 +324,13 @@ function Proyecto({ isAuth }) {
                     {
                         urlApp == null ?
                             <>
-                                <input id="inputApp" type="file" name="app" onChange={(event) => setApp(event.target.files[0])} disabled={isProfesor && true} />
-                                <button type="button" onClick={() => { subirApp() }} disabled={isProfesor && true}>Subir app</button>
+                                <input id="inputApp" type="file" name="app" onChange={(event) => setApp(event.target.files[0])} disabled={(isProfesor && true) || isCerrado} />
+                                <button type="button" onClick={() => { subirApp() }} disabled={(isProfesor && true) || isCerrado}>Subir app</button>
                             </>
                             :
                             <>
                                 <a href={urlApp}>{urlApp.split('rjvgbarvbjdrsgfvkjsyfjvbgsrvefjyrgesvbfsgfs')[1].split("?alt=")[0]}</a>
-                                <button type="button" onClick={() => { setApp(null); setUrlApp(null) }} disabled={isProfesor && true}>Borrar archivo</button>
+                                <button type="button" onClick={() => { setApp(null); setUrlApp(null) }} disabled={(isProfesor && true) || isCerrado}>Borrar archivo</button>
                             </>
                     }
                     <br />
@@ -343,8 +369,8 @@ function Proyecto({ isAuth }) {
                     <br />
                     <p>Otros archivos:</p>
 
-                    <input id="inputOtros" type="file" name="otros" multiple onChange={(e) => { setOtrosDocs(e.target.files) }} disabled={isProfesor && true}/>
-                    <button type="button" onClick={() => { subirOtrosDocs() }} disabled={isProfesor && true}>Subir otros</button>
+                    <input id="inputOtros" type="file" name="otros" multiple onChange={(e) => { setOtrosDocs(e.target.files) }} disabled={(isProfesor && true) || isCerrado} />
+                    <button type="button" onClick={() => { subirOtrosDocs() }} disabled={(isProfesor && true) || isCerrado}>Subir otros</button>
                     <br />
                     <ul>
                         {
@@ -354,7 +380,7 @@ function Proyecto({ isAuth }) {
                                         <a href={url}>{url.split('rjvgbarvbjdrsgfvkjsyfjvbgsrvefjyrgesvbfsgfs')[1].split("?alt=")[0]}</a>
                                         <button type="button" onClick={() => { removeItem(i) }
 
-                                        } disabled={isProfesor && true}>Borrar archivo</button>
+                                        } disabled={isProfesor || isCerrado}>Borrar archivo</button>
                                     </li>
                                 )
                             })
@@ -365,22 +391,33 @@ function Proyecto({ isAuth }) {
                 </form>
                 Etiquetas:
                 <ReactTagInput
+                readOnly={isProfesor || isCerrado}
                     tags={etiquetas}
-                    onChange={(newTags) => setEtiquetas(newTags)}
+                    onChange={(newTags) => {
+                        setEtiquetas(newTags)
+                        
+                    }}
                 />
 
+                <br />
+                <br />
                 <br />
                 <br />
                 {
                     isEditando ?
                         <button type="submit" form="FormularioProyecto">Actualizar</button>
                         :
-                        <button type="submit" form="FormularioProyecto">Submit</button>
+                        <button type="submit" form="FormularioProyecto">Guardar</button>
                 }
                 {
-                    isProfesor && <button>Cerrar entrega</button>
+                    isProfesor && (
+                        <>
+                            {isCerrado ? <><button onClick={() => setIsCerrado(false)}>Abrir entrega</button></> :
+                                <><button onClick={() => setIsCerrado(true)}>Cerrar entrega</button></>
+                            }
+                        </>
+                    )
                 }
-
             </div>
 
         </div>

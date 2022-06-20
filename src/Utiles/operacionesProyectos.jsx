@@ -4,7 +4,6 @@ import { collection, getDocs, getDoc, addDoc, deleteDoc, doc, setDoc } from "fir
 const referenciaColeccionProyectos = collection(db, "proyectos");
 class operacionesProyectos {
     addProyecto(newProyecto) {
-        console.log(newProyecto)
         return addDoc(referenciaColeccionProyectos, newProyecto);
     }
     updateProyecto = async (ids, updatedProyecto) => {
@@ -13,6 +12,7 @@ class operacionesProyectos {
                 alumno: updatedProyecto.alumno,
                 tutor: updatedProyecto.tutor,
                 profesor: updatedProyecto.profesor,
+                ciclo: updatedProyecto.ciclo,
                 curso: updatedProyecto.curso,
                 tituloProyecto: updatedProyecto.tituloProyecto,
                 tipo: updatedProyecto.tipo,
@@ -25,6 +25,7 @@ class operacionesProyectos {
                 urlCodigo: updatedProyecto.urlCodigo,
                 urlApp: updatedProyecto.urlApp,
                 urlPdfEvaluacion: updatedProyecto.urlPdfEvaluacion,
+                urlHistoricoNotas: updatedProyecto.urlHistoricoNotas,
                 urlsOtrosDocs: updatedProyecto.urlsOtrosDocs,
                 isCerrado: updatedProyecto.isCerrado
 

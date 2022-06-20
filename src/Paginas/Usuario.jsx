@@ -23,7 +23,6 @@ function Usuario({ isAuth }) {
                     setEmail(user.email);
                     getUsuario();
                 } else {
-                    console.log("no estas logeado")
                     navigate("/login");
                 }
             });
@@ -38,7 +37,6 @@ function Usuario({ isAuth }) {
             const querySnapshot = await getDocs(q);
             querySnapshot.forEach((doc) => {
                 let array = [doc.data()];
-                console.log(doc.id)
                 setIdDoc(doc.id);
                 setNombre(array[0].nombre);
                 setIsProfesor(array[0].isProfesor);
@@ -50,10 +48,10 @@ function Usuario({ isAuth }) {
     };
 
     const solicitarCambioRol = async (laCosa) => {
+        setIsSolicitadoSerProfesor(true);
         const q = query(collection(db, "usuarios"), where("correo", "==", email));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-            console.log(doc.id)
             setIdDoc(doc.id);
 
         });
@@ -88,27 +86,31 @@ function Usuario({ isAuth }) {
 
 
     return (
-        <div>
-            <div>Usuario</div>
-            {console.log(isSolicitadoSerProfesor)}
+        
+        <div className="d-flex justify-content-center">
+        <div className="w-75 border rounded p-3 m-3" style={{ width: "450px" }}>
+           
+            <h3>Información del usuario:</h3>
+                    {isAdmin && <button className="btn btn-secondary mb-3" onClick={() => { navigate("/admin") }}>Ir al panel de administración</button>}
+            
+
             {!isAuth ? <p>No puedes estar aqui</p> :
                 <>
-                    {isAdmin && <button onClick={() => { navigate("/admin") }}>Ir al panel de administración</button>}
-                    <p>información del usuario: </p>
+                <br />
                     <p>Nombre: {nombre}</p>
                     <p>Email: {email}</p>
                     <p>Rol: {isProfesor ? "Profesor" : "Alumno"}{isAdmin && " con permisos de administrador"}</p>
                     <>
                         {
-                            !isProfesor && <><button onClick={() => { solicitarCambioRol("profesor") }}>Solicitar cambio de rol a profesor</button></>
+                            !isProfesor && !isSolicitadoSerProfesor ? <><button className="btn btn-secondary mb-3" onClick={() => { solicitarCambioRol("profesor") }}>Solicitar cambio de rol a profesor</button></> : <></>
                         }
                     </>
+                    {isSolicitadoSerProfesor &&  <p className="bg-warning p-3 rounded">Se ha enviado una solicitud para cambio de rol a profesor, pronto un administrador atenderá tu petición</p>}
                 </>
             }
-
-            <p>{isSolicitadoSerProfesor && "Se ha enviado una solicitud para cambio de rol a profesor, pronto un administrador atenderá tu petición"}</p>
+          
         </div >
-
+        </div>
     );
 }
 

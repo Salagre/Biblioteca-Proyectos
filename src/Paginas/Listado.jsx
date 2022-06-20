@@ -19,6 +19,7 @@ function Listado({ isAuth }) {
     const [ensTipo, setEnsTipo] = useState(false);
     const [ensEtiquetas, setEnsEtiquetas] = useState(false);
     const [ensBoton, setEnsBoton] = useState(true);
+    const [isProfesor, setIsProfesor] = useState(true);
     const ref = collection(db, "proyectos");
 
     const [orden, setOrden] = useState("asc");
@@ -31,6 +32,7 @@ function Listado({ isAuth }) {
                 if (user) {
                     const uid = user.email;
                     setEmail(uid);
+                    getUsuario(user.email)
                     getProyectos();
 
                 } else {
@@ -41,6 +43,22 @@ function Listado({ isAuth }) {
 
         }
     }, []);
+
+    const getUsuario = async (ema) => {
+        console.log(ema)
+        if (isAuth) {
+            const q = query(collection(db, "usuarios"), where("correo", "==", ema));
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                let array = [doc.data()];
+                setIsProfesor(array[0].isProfesor);
+                if(!array[0].isProfesor){
+                    navigate("/")
+                }
+            });
+
+        }
+    };
 
     const abrirVistaDetalle = (props) => {
         navigate("/Proyecto", { state: { props: props } });
@@ -57,7 +75,6 @@ function Listado({ isAuth }) {
     };
 
     const ordenar = (columna) => {
-        console.log(posts)
         if (orden === "asc") {
             const ordenado = [...posts].sort((a, b) =>
                 a[0][columna].toLowerCase() > b[0][columna].toLowerCase() ? 1 : -1);
@@ -116,8 +133,8 @@ function Listado({ isAuth }) {
         if (ensEtiquetas) arrayCabeceras.push("Etiquetas")
 
         let newArray = []
-        posts.map((item) => {
-            
+        filtrar(posts).map((item) => {
+
             let arr = []
             if (ensTitulo) arr.push(item[0].tituloProyecto)
             if (ensAlumno) arr.push(item[0].alumno)
@@ -128,7 +145,6 @@ function Listado({ isAuth }) {
             if (ensEtiquetas) arr.push(item[0].etiquetas)
             newArray.push(arr)
         })
-        console.log(newArray);
         doc.autoTable({
             head: [arrayCabeceras],
             body: [...newArray]
@@ -138,10 +154,10 @@ function Listado({ isAuth }) {
 
     const Table = ({ data }) => {
         return (
-            <table>
+            <table className="mt-3 table table-striped table-hover table-bordered rounded">
                 <thead>
-                    <tr>
-                        {ensTitulo && <th></th>}
+                    <tr className="table-primary">
+                        {ensBoton && <th>#</th>}
                         {ensTitulo && <th onClick={() => ordenar("tituloProyecto")}>Titulo</th>}
                         {ensAlumno && <th onClick={() => ordenar("alumno")}>Alumno</th>}
                         {ensTutor && <th onClick={() => ordenar("tutor")}>Tutor</th>}
@@ -158,7 +174,7 @@ function Listado({ isAuth }) {
                         data.map((proyecto) => {
                             return (
                                 <tr key={proyecto[1]}>
-                                    {ensBoton && <td><button onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle</button></td>}
+                                    {ensBoton && <td><button className="btn-info rounded" onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle</button></td>}
                                     {ensTitulo && <td>{proyecto[0].tituloProyecto}</td>}
                                     {ensAlumno && <td>{proyecto[0].alumno}</td>}
                                     {ensTutor && <td>{proyecto[0].tutor}</td>}
@@ -180,38 +196,42 @@ function Listado({ isAuth }) {
 
     return (
         <div>
-            <div>
-                Que campos mostrar en la tabla:
-                <br />
-                <input type="checkbox" onChange={() => { setEnsBoton(!ensBoton) }} checked={ensBoton} />Boton editar
-                <input type="checkbox" onChange={() => { setEnsTitulo(!ensTitulo) }} checked={ensTitulo} />Titulo
-                <input type="checkbox" onChange={() => { setEnsAlumno(!ensAlumno) }} checked={ensAlumno} />Alumno
-                <input type="checkbox" onChange={() => { setEnsTutor(!ensTutor) }} checked={ensTutor} />Tutor
-                <input type="checkbox" onChange={() => { setEnsProfesor(!ensProfesor) }} checked={ensProfesor} />Tribunal
-                <input type="checkbox" onChange={() => { setEnsCurso(!ensCurso) }} checked={ensCurso} />Curso
-                <input type="checkbox" onChange={() => { setEnsTipo(!ensTipo) }} checked={ensTipo} />Tipo
-                <input type="checkbox" onChange={() => { setEnsEtiquetas(!ensEtiquetas) }} checked={ensEtiquetas} />Etiquetas
+            <div className="d-flex justify-content-center flex-column">
+                <div className="border rounded p-3 m-3 ">
+                    Que campos se muestran en la tabla:
+                    <br />
+                    <div className="row">
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="1" type="checkbox" onChange={() => { setEnsBoton(!ensBoton) }} checked={ensBoton} />&nbsp;<label htmlFor="1">Boton editar</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="2" type="checkbox" onChange={() => { setEnsTitulo(!ensTitulo) }} checked={ensTitulo} />&nbsp;<label htmlFor="2">Titulo</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="3" type="checkbox" onChange={() => { setEnsAlumno(!ensAlumno) }} checked={ensAlumno} />&nbsp;<label htmlFor="3">Alumno</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="4" type="checkbox" onChange={() => { setEnsTutor(!ensTutor) }} checked={ensTutor} />&nbsp;<label htmlFor="4">Tutor</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="5" type="checkbox" onChange={() => { setEnsProfesor(!ensProfesor) }} checked={ensProfesor} />&nbsp;<label htmlFor="5">Tribunal</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="6" type="checkbox" onChange={() => { setEnsCurso(!ensCurso) }} checked={ensCurso} />&nbsp;<label htmlFor="6">Curso</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="7" type="checkbox" onChange={() => { setEnsTipo(!ensTipo) }} checked={ensTipo} />&nbsp;<label htmlFor="7">Tipo</label></div>
+                        <div className="m-2 p-3 border-left border-right rounded"><input id="8" type="checkbox" onChange={() => { setEnsEtiquetas(!ensEtiquetas) }} checked={ensEtiquetas} />&nbsp;<label htmlFor="8">Etiquetas</label></div>
+
+                    </div></div>
+                <div className="border rounded p-3 m-3">
+                    <div>Listado Proyectos</div>
+                    {
+                        !isAuth
+                            ?
+                            <div>Necesitas iniciar sesión para usar la aplicación.</div>
+                            :
+                            <div>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar..."
+                                    className="buscar"
+                                    onChange={(e) => { setFiltro(e.target.value) }} />
+                                <button onClick={() => { exportarAPdf() }}>Exportar tabla a pdf</button>
+                                <Table data={filtrar(posts)} />
+                            </div>
+
+                    }
+                </div>
             </div>
-            <div>Listado Proyectos</div>
-            {
-                !isAuth
-                    ?
-                    <div>Necesitas iniciar sesión para usar la aplicación.</div>
-                    :
-                    <>
-                        <input
-                            type="text"
-                            placeholder="Buscar..."
-                            className="buscar"
-                            onChange={(e) => { setFiltro(e.target.value) }} />
-                        <button onClick={() => { exportarAPdf() }}>Exportar tabla a pdf</button>
-                        <Table data={filtrar(posts)} />
-                    </>
-
-            }
-
         </div>
-
     )
 
 }

@@ -50,6 +50,7 @@ function Inicio({ isAuth }) {
     const getProyectosAlumno = async () => {
         if (isAuth) {
             const q = query(collection(db, "proyectos"), where("alumno", "==", email));
+            console.log(email)
             const querySnapshot = await getDocs(q);
             querySnapshot.forEach((doc) => {
                 let arra = [doc.data()];
@@ -85,97 +86,90 @@ function Inicio({ isAuth }) {
     }
 
     const abrirVistaDetalle = (props) => {
-        navigate("/Proyecto",{state:{props: props}});
+        navigate("/Proyecto", { state: { props: props } });
     }
 
 
     return (
         <div>
-            <div>Inicio</div>
+            <h1 className="mx-5 my-3">Inicio</h1>
             {
                 !isAuth
                     ?
-                    <div>Necesitas iniciar sesión para usar la aplicación.</div>
+                    <div style={{ background: "rgba(255, 0, 0, 0.4)" }} className="p-3 m-5 rounded">
+                        <h3 style={{ color: "black" }}>Necesitas iniciar sesión para usar la aplicación.</h3>
+                    </div>
                     :
                     isProfesor ?
+
+                    isProfesor && proyectosProfesor.length == 0 && proyectosTutor.length == 0 ? <h5  className="d-grid gap-3 border m-3 p-3">No tienes ningun proyecto asignado</h5> : 
                         <div>
-                            <div>Maestro</div>
-                            <ul>
-                                {
-                                    proyectosTutor.map((proyecto) => {
-                                        return (
-                                            <li key={proyecto[1]}>
-                                                <div>
-                                                    <button onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle</button>
-                                                    <h4>Titulo:     <span>{proyecto[0].tituloProyecto}</span></h4>
-                                                    <h4>Alumno:     <span>{proyecto[0].alumno}</span></h4>
-                                                    <h4>Tutor:      <span>{proyecto[0].tutor}</span></h4>
-                                                    <h4>Profesor:       <span>{proyecto[0].profesor}</span></h4>
-                                                    <h4>Curso:      <span>{proyecto[0].curso}</span></h4>
-                                                    <h4>Tipo:       <span>{proyecto[0].tipo}</span></h4>
-                                                    <h4>Finalidad:      <span>{proyecto[0].finalidad}</span></h4>
-                                                    <h4>Requisitos/Objetivos:      </h4><pre>{proyecto[0].reqObj.join("\n")} </pre>
-                                                <h4>Medios Software:        </h4><pre>{proyecto[0].mediosSoft.join("\n")}</pre>
-                                                <h4>Medios Hardware:        </h4><pre >{proyecto[0].mediosHard.join("\n")}</pre>
-                                                    <h4>Etiquetas:      <span>{proyecto[0].etiquetas}</span></h4>
-                                                </div>
-                                                <hr />
-                                            </li>
-                                        )
-                                    })
-                                }
-                            </ul>
-                            <div>Profesor</div>
-                            <ul>
-                                {
-                                    proyectosProfesor.map((proyecto) => {
-                                        return (
-                                            <li key={proyecto[1]}>
-                                            <button onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle</button>
-                                                <h4>Titulo:     <span>{proyecto[0].tituloProyecto}</span></h4>
-                                                <h4>Alumno:     <span>{proyecto[0].alumno}</span></h4>
-                                                <h4>Tutor:      <span>{proyecto[0].tutor}</span></h4>
-                                                <h4>Profesor:       <span>{proyecto[0].profesor}</span></h4>
-                                                <h4>Curso:      <span>{proyecto[0].curso}</span></h4>
-                                                <h4>Tipo:       <span>{proyecto[0].tipo}</span></h4>
-                                                <h4>Finalidad:      <span>{proyecto[0].finalidad}</span></h4>
-                                                <h4>Requisitos/Objetivos:      </h4><pre>{proyecto[0].reqObj.join("\n")} </pre>
-                                                <h4>Medios Software:        </h4><pre>{proyecto[0].mediosSoft.join("\n")}</pre>
-                                                <h4>Medios Hardware:        </h4><pre >{proyecto[0].mediosHard.join("\n")}</pre>
-                                                <h4>Etiquetas:      <span>{proyecto[0].etiquetas}</span></h4>
-                                                <hr />
-                                            </li>
-                                        )
-                                    })
-                                }
-                            </ul>
+                            {proyectosTutor.length != 0 && <h5 className="p-3">&emsp;&emsp;&emsp;Listado de los proyectos que eres tutor</h5>}
+                            
+
+                            {
+                                proyectosTutor.map((proyecto) => {
+                                    return (
+                                        <div className="card m-4 border rounded-3" key={proyecto[1]}>
+                                            <div className="card-header ">
+                                                {proyecto[0].tituloProyecto}
+                                            </div>
+                                            <div className="card-body">
+                                                <p className="card-text">Alumno: {proyecto[0].alumno}</p>
+                                                <p className="card-text">Tutor: {proyecto[0].tutor}</p>
+                                                <p className="card-text">Tribunal: {proyecto[0].profesor}</p>
+                                                <button href="#" className="btn btn-primary" onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle / editar</button>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            }
+
+                            {proyectosProfesor.length != 0 && <h5 className="p-3">&emsp;&emsp;&emsp;Listado de los proyectos que eres tribunal</h5> }
+                            
+
+                            {
+                                proyectosProfesor.map((proyecto) => {
+                                    return (
+                                        <div className="card m-4 border rounded-3" key={proyecto[1]}>
+                                            <div className="card-header ">
+                                                {proyecto[0].tituloProyecto}
+                                            </div>
+                                            <div className="card-body">
+                                                <p className="card-text">Alumno: {proyecto[0].alumno}</p>
+                                                <p className="card-text">Tutor: {proyecto[0].tutor}</p>
+                                                <p className="card-text">Tribunal: {proyecto[0].profesor}</p>
+                                                <button href="#" className="btn btn-primary" onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle / editar</button>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            }
+
                         </div>
                         :
-                        <div>
-                            <div>Tus cosas</div>
-                            <ul>
-                                {
-                                    proyectosAlumno.map((proyecto) => {
-                                        return (
-                                            <li key={proyecto[1]}>
-                                            <button onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle</button>
-                                                <h4>Titulo:     <span>{proyecto[0].tituloProyecto}</span></h4>
-                                                <h4>Alumno:     <span>{proyecto[0].alumno}</span></h4>
-                                                <h4>Tutor:      <span>{proyecto[0].tutor}</span></h4>
-                                                <h4>Profesor:       <span>{proyecto[0].profesor}</span></h4>
-                                                <h4>Curso:      <span>{proyecto[0].curso}</span></h4>
-                                                <h4>Tipo:       <span>{proyecto[0].tipo}</span></h4>
-                                                <h4>Finalidad:      <span>{proyecto[0].finalidad}</span></h4>
-                                                <h4>Requisitos/Objetivos:      </h4><pre>{proyecto[0].reqObj.join("\n")} </pre>
-                                                <h4>Medios Software:        </h4><pre>{proyecto[0].mediosSoft.join("\n")}</pre>
-                                                <h4>Medios Hardware:        </h4><pre >{proyecto[0].mediosHard.join("\n")}</pre>
-                                                <h4>Etiquetas:      <span>{proyecto[0].etiquetas}</span></h4>
-                                                <hr />
-                                            </li>
-                                        )
-                                    })
-                                }
-                            </ul>
+
+                        proyectosAlumno.length == 0 ? <h5 className="d-grid gap-3 border m-3 p-3" >&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;No tienes ningun proyecto asignado</h5> : 
+                        <div className="d-grid gap-3 border m-3">
+                            <h5 className="p-3">&emsp;&emsp;&emsp;Listado de tus proyectos</h5>
+                            {
+                                proyectosAlumno.map((proyecto) => {
+                                    return (
+                                        <div className="card m-4 border rounded-3" key={proyecto[1]}>
+                                            <div className="card-header ">
+                                                {proyecto[0].tituloProyecto}
+                                            </div>
+                                            <div className="card-body">
+                                                <p className="card-text">Alumno: {proyecto[0].alumno}</p>
+                                                <p className="card-text">Tutor: {proyecto[0].tutor}</p>
+                                                <p className="card-text">Tribunal: {proyecto[0].profesor}</p>
+                                                <button href="#" className="btn btn-primary" onClick={() => abrirVistaDetalle(proyecto)}>Vista detalle / editar</button>
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            }
+
                         </div>
             }
         </div>

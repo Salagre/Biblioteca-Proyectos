@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, setDoc } from "firebase/firestore";
+import { confirm } from "react-confirm-box";
 
 function Admin({ isAuth }) {
     let navigate = useNavigate();
@@ -11,7 +12,9 @@ function Admin({ isAuth }) {
     const [isAdmin, setIsAdmin] = useState(false)
     const [usuariosQueQuierenSerProfesores, setUsuariosQueQuierenSerProfesores] = useState([]);
     const [admins, setAdmins] = useState([]);
+    const [profesores, setProfesores] = useState([]);
     const [nuevoAdmin, setNuevoAdmin] = useState("");
+    const [nuevoProfesor, setNuevoProfesor] = useState("");
 
     useEffect(() => {
         if (isAuth) {
@@ -19,7 +22,6 @@ function Admin({ isAuth }) {
                 if (user) {
                     getUsuario(user.email);
                 } else {
-                    console.log("no estas logeado")
                     navigate("/login");
                 }
             });
@@ -56,16 +58,23 @@ function Admin({ isAuth }) {
             querySnapshot3.forEach((doc) => {
                 setAdmins(oldAdmins => [...oldAdmins, { idDoc: doc.id, correo: doc.data().correo, nombre: doc.data().nombre, isProfesor: doc.data().isProfesor }]);
             });
+
+            const q4 = query(collection(db, "usuarios"), where("isProfesor", "==", true));
+            const querySnapshot4 = await getDocs(q4);
+            setProfesores([]);
+            querySnapshot4.forEach((doc) => {
+                setProfesores(oldProfesores => [...oldProfesores, { idDoc: doc.id, correo: doc.data().correo, nombre: doc.data().nombre, isProfesor: doc.data().isProfesor }]);
+            });
+
+
         }
     };
 
-    const handleSubmit = async (e) => {
+    const anadirAdmin = async (e) => {
         //Comprobar si el usuario existe
         e.preventDefault();
-        console.log(nuevoAdmin)
         const q = query(collection(db, "usuarios"), where("correo", "==", nuevoAdmin));
         const querySnapshot = await getDocs(q);
-        console.log(querySnapshot.docs)
         let docs = [];
         //console.log(querySnapshot.size)
         if (querySnapshot.size != 0) {
@@ -74,6 +83,11 @@ function Admin({ isAuth }) {
                 //console.log(doc.data().correo);
                 docs = doc;
             });
+            const result = await confirm("El usuario con correo " + nuevoAdmin + " obtendrá el rol, y privilegios de administrador, \n¿Quiére continuar?");
+            if (!result) return;
+        } else {
+
+            alert("No existe un usuario con ese correo");
         }
         try {
             await setDoc(doc(db, "usuarios", docs.id), {
@@ -93,10 +107,11 @@ function Admin({ isAuth }) {
         //Hacerlo admin
     }
 
-    const denegarPeticion = async (e) => {
-        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+    const anadirNuevoProfesor = async (e) => {
+        //Comprobar si el usuario existe
+        e.preventDefault();
+        const q = query(collection(db, "usuarios"), where("correo", "==", nuevoProfesor));
         const querySnapshot = await getDocs(q);
-        console.log(querySnapshot.docs)
         let docs = [];
         //console.log(querySnapshot.size)
         if (querySnapshot.size != 0) {
@@ -105,34 +120,10 @@ function Admin({ isAuth }) {
                 //console.log(doc.data().correo);
                 docs = doc;
             });
-        }
-        try {
-            await setDoc(doc(db, "usuarios", docs.id), {
-                correo: docs.data().correo,
-                nombre: docs.data().nombre,
-                isProfesor: false,
-                isAdmin: docs.data().isAdmin,
-                isSolicitadoSerProfesor: false
-            });
-            window.location.reload(false);
-            //return updateDoc(proyectoDoc, updatedProyecto);
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    const aprobarPeticion = async (e) => {
-        const q = query(collection(db, "usuarios"), where("correo", "==", e));
-        const querySnapshot = await getDocs(q);
-        console.log(querySnapshot.docs)
-        let docs = [];
-        //console.log(querySnapshot.size)
-        if (querySnapshot.size != 0) {
-            querySnapshot.forEach((doc) => {
-                //No hay usuario, asi que no es correcto
-                //console.log(doc.data().correo);
-                docs = doc;
-            });
+            const result = await confirm("El usuario con correo " + nuevoProfesor + " obtendrá el rol, y privilegios de profesor, \n¿Quiére continuar?");
+            if (!result) return;
+        } else {
+            alert("No existe un usuario con ese correo");
         }
         try {
             await setDoc(doc(db, "usuarios", docs.id), {
@@ -149,10 +140,11 @@ function Admin({ isAuth }) {
         }
     }
 
-    const eliminarAdmin = async (e) => {
+    const denegarPeticion = async (e) => {
+        const result = await confirm("Are you sure?");
+        if (!result) return;
         const q = query(collection(db, "usuarios"), where("correo", "==", e));
         const querySnapshot = await getDocs(q);
-        console.log(querySnapshot.docs)
         let docs = [];
         //console.log(querySnapshot.size)
         if (querySnapshot.size != 0) {
@@ -161,6 +153,74 @@ function Admin({ isAuth }) {
                 //console.log(doc.data().correo);
                 docs = doc;
             });
+            const result = await confirm("Al usuario con correo " + docs.data().correo + " se le negará el rol, y privilegios de profesor, \n¿Quiére continuar?");
+            if (!result) return;
+        } else {
+            alert("No existe un usuario con ese correo");
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: false,
+                isAdmin: docs.data().isAdmin,
+                isSolicitadoSerProfesor: false
+            });
+            alert("Operación completada con exito")
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const aprobarPeticion = async (e) => {
+        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+        const querySnapshot = await getDocs(q);
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+            const result = await confirm("Al usuario con correo " + docs.data().correo + " obtendrá el rol, y privilegios de profesor, \n¿Quiére continuar?");
+            if (!result) return;
+        } else {
+            alert("No existe un usuario con ese correo");
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: true,
+                isAdmin: docs.data().isAdmin,
+                isSolicitadoSerProfesor: false
+            });
+            alert("Operación completada con exito")
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const eliminarAdmin = async (e) => {
+        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+        const querySnapshot = await getDocs(q);
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+            const result = await confirm("Al usuario con correo " + docs.data().correo + " se le quitará el rol, y privilegios de administrador, \n¿Quiére continuar?");
+            if (!result) return;
+        } else {
+            alert("No existe un usuario con ese correo");
         }
         try {
             await setDoc(doc(db, "usuarios", docs.id), {
@@ -170,6 +230,39 @@ function Admin({ isAuth }) {
                 isAdmin: false,
                 isSolicitadoSerProfesor: docs.data().isSolicitadoSerProfesor
             });
+            alert("Operación completada con exito")
+            window.location.reload(false);
+            //return updateDoc(proyectoDoc, updatedProyecto);
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    const eliminarProfesor = async (e) => {
+        const q = query(collection(db, "usuarios"), where("correo", "==", e));
+        const querySnapshot = await getDocs(q);
+        let docs = [];
+        //console.log(querySnapshot.size)
+        if (querySnapshot.size != 0) {
+            querySnapshot.forEach((doc) => {
+                //No hay usuario, asi que no es correcto
+                //console.log(doc.data().correo);
+                docs = doc;
+            });
+            const result = await confirm("Al usuario con correo " + docs.data().correo + " se le quitará el rol, y privilegios de profesor, incluido el acceso a proyectos que tenga como tutor, \n¿Quiére continuar?");
+            if (!result) return;
+        } else {
+            alert("No existe un usuario con ese correo");
+        }
+        try {
+            await setDoc(doc(db, "usuarios", docs.id), {
+                correo: docs.data().correo,
+                nombre: docs.data().nombre,
+                isProfesor: false,
+                isAdmin: docs.data().isAdmin,
+                isSolicitadoSerProfesor: docs.data().isSolicitadoSerProfesor
+            });
+            alert("Operación completada con exito")
             window.location.reload(false);
             //return updateDoc(proyectoDoc, updatedProyecto);
         } catch (err) {
@@ -181,47 +274,81 @@ function Admin({ isAuth }) {
 
 
     return (
-        <div>
-            <div>Cambiar roles de usuario</div>
-            <div>Usuarios que quieren ser profesor</div>
-            <div>
-                <ul>
-                    {usuariosQueQuierenSerProfesores.map((obj) => (
-                        <li key={obj.idDoc}>
-                            <p>Nombre: {obj.nombre} </p>
-                            <p>Correo: {obj.correo} </p>
-                            <button onClick={() => denegarPeticion(obj.correo)}>Denegar petición</button>
-                            <button onClick={() => aprobarPeticion(obj.correo)}>Aprobar petición</button>
-                        </li>
-                    ))}
-                </ul>
+        <div className="d-flex justify-content-center ">
+            <div className="row">
+                <div className=" container-fluid border rounded p-3 m-3 col-xs-12 col-lg-3" >
+                    <div>Cambiar roles de usuario</div>
+                    <div className="mb-3">Usuarios que quieren ser profesor</div>
+                    <div>
 
+                        {usuariosQueQuierenSerProfesores.map((obj) => (
+                            <div className="border rounded mb-2 p-3" key={obj.idDoc}>
+                                <p>Nombre: {obj.nombre} </p>
+                                <p>Correo: {obj.correo} </p>
+                                <button className="btn-danger rounded mr-3" onClick={() => denegarPeticion(obj.correo)}>Denegar petición</button>
+                                <button className="btn-success rounded" onClick={() => aprobarPeticion(obj.correo)}>Aprobar petición</button>
+                            </div>
+                        ))}
+
+
+                    </div>
+                </div>
+
+                <div className="container-fluid border rounded p-3 m-3 col-xs-12 col-lg-3" >
+                    <div>Listado de Profesores</div>
+                    <div className="mb-3 ">
+                        <div>Añadir nuevo profesor</div>
+                        <p>Para añadir un profesor nuevo a la lista, este tiene que haber iniciado sesión una vez</p>
+                        <form onSubmit={anadirNuevoProfesor}>
+                            <input type="text" name="correo" onChange={event => setNuevoProfesor(event.target.value)} />
+                            <input type="submit" value="Añadir" className="btn-success rounded" />
+                        </form>
+                    </div>
+                    <div>
+
+                        {profesores.map((user) => (
+                            <div key={user.idDoc} className="border rounded mb-2 p-3">
+                                <p>Nombre: {user.nombre} </p>
+                                <p>Correo: {user.correo} </p>
+                                <button className="btn-danger rounded" onClick={() => eliminarProfesor(user.correo)}>Quitar rol de profesor</button>
+                            </div>
+                        ))}
+
+
+                    </div>
+
+                </div>
+
+
+            
+
+
+
+
+                <div className="container-fluid border rounded p-3 m-3 col-xs-12 col-lg-3" >
+                    <div>Listado de Administradores</div>
+                    <div className="mb-3">
+                        <div>Añadir nuevo administrador</div>
+                        <p>Para añadir un administrador nuevo a la lista, este tiene que haber iniciado sesión una vez</p>
+                        <form onSubmit={anadirAdmin}>
+                            <input type="text" name="correo" onChange={event => setNuevoAdmin(event.target.value)} />
+                            <input type="submit" value="Añadir" className="btn-success rounded" />
+                        </form>
+                    </div>
+                    <div>
+                        {admins.map((user) => (
+                            <div key={user.idDoc} className="border rounded mb-2 p-3">
+                                <p>Nombre: {user.nombre} </p>
+                                <p>Correo: {user.correo} </p>
+                                <button className="btn-danger rounded" onClick={() => eliminarAdmin(user.correo)}>Quitar rol de Administrador</button>
+                            </div>
+                        ))}
+
+
+                    </div>
+                </div>
             </div>
-
-
-            <div>Listado de Administradores</div>
-            <div>
-                <div>Añadir nuevo administrador</div>
-                <form onSubmit={ handleSubmit}>
-                    <input type="text" name="correo" onChange={event => setNuevoAdmin(event.target.value)} />
-                    <input type="submit" value="Añadir" />
-                </form>
-            </div>
-            <div>
-                <ul>
-                    {admins.map((user) => (
-                        <li key={user.idDoc}>
-                            <p>Nombre: {user.nombre} </p>
-                            <p>Correo: {user.correo} </p>
-                            <button  onClick={() => eliminarAdmin(user.correo) }>Eliminar Administrador</button>
-                        </li>
-                    ))}
-                </ul>
-
-            </div>
-
         </div>
-
     );
 }
 

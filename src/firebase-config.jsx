@@ -31,7 +31,6 @@ export const provider = new OAuthProvider("microsoft.com");
 // Configuración del provider
 provider.setCustomParameters({
     prompt: 'consent',
-    login_hint: 'ahh',
     tenant: 'educa.jcyl.es'
 });
 

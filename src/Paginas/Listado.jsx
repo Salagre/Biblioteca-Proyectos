@@ -211,7 +211,7 @@ function Listado({ isAuth }) {
                         <div className="m-2 p-3 border-left border-right rounded"><input id="8" type="checkbox" onChange={() => { setEnsEtiquetas(!ensEtiquetas) }} checked={ensEtiquetas} />&nbsp;<label htmlFor="8">Etiquetas</label></div>
 
                     </div></div>
-                <div className="border rounded p-3 m-3">
+                <div className="border rounded p-3 m-3 container-fluid">
                     <div>Listado Proyectos</div>
                     {
                         !isAuth

@@ -528,7 +528,7 @@ function Proyecto({ isAuth }) {
                     Etiquetas:
                     <ReactTagInput
                     hint="Aaa"
-                        readOnly={isProfesor || isCerrado && email != alumno && email != tutor && email != profesor}
+                        readOnly={isProfesor || isCerrado && email != alumno && email != tutor && email != profesor || isCerrado}
                         tags={etiquetas}
                         onChange={(newTags) => {
                             setEtiquetas(newTags)
